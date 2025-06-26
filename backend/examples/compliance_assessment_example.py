@@ -22,7 +22,8 @@ def run_example_assessment():
 
     # --- Test Case 1: A NEW, "in-between" piece of evidence for control AC-6 ---
     control_id_1 = "AC-6"
-    evidence_1 = "All our AI agents use the 'standard-agent' role. This role has read/write access to the main patient database and read-only access to the billing system. We lock it down more if we see a problem."
+    # evidence_1 = "All our AI agents use the 'standard-agent' role. This role has read/write access to the main patient database and read-only access to the billing system. We lock it down more if we see a problem."
+    evidence_1 = "Our Identity and Access Management (IAM) policy, 'POL-IAM-002', reviewed on 2025-05-20, explicitly defines roles for all human and non-human users, including AI agents. Production agents operate under the 'prod-agent-readonly' role, which grants read-only access to specific, anonymized patient data partitions required for their analysis function. Any request for elevated privileges, such as write access or access to raw PII, requires a JIRA service ticket using the 'Privilege-Escalation-Request' workflow. This workflow requires two-factor approval from both the Data Governance Lead and the CISO and is logged in our immutable SIEM for audit purposes."
     enhancement_level_1 = "moderate" # A sample enhancement level for this control
 
     print(f"--- Running Full Test for Control: {control_id_1} ---")
