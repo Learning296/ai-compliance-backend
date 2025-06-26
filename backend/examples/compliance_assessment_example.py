@@ -1,126 +1,80 @@
 """
 Example usage of AuditPilot AI Compliance Assessment
 """
-from auditpilot.core.ai_analyzer import AIComplianceAnalyzer
-from auditpilot.core.evidence_collector import EvidenceCollector
-import json
+import sys
+import os
+
+# Add the parent directory (backend) to the Python path to resolve the import error
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from auditpilot.core.ai_analyzer import AIComplianceAnalyzer, AISecurityAssessment
 from pprint import pprint
 
 def run_example_assessment():
-    # Initialize components
-    analyzer = AIComplianceAnalyzer()
-    collector = EvidenceCollector()
+    """
+    An example to test the full AuditPilot system, from AI analysis to final scoring.
+    """
+    # Initialize both components of our system
+    # The AI 'Thinker' that makes judgments
+    ai_thinker = AIComplianceAnalyzer()
+    # The 'Calculator' that does the math
+    score_calculator = AISecurityAssessment()
+
+    # --- Test Case 1: A NEW, "in-between" piece of evidence for control AC-6 ---
+    control_id_1 = "AC-6"
+    evidence_1 = "All our AI agents use the 'standard-agent' role. This role has read/write access to the main patient database and read-only access to the billing system. We lock it down more if we see a problem."
+    enhancement_level_1 = "moderate" # A sample enhancement level for this control
+
+    print(f"--- Running Full Test for Control: {control_id_1} ---")
+    print(f"Analyzing Evidence: \"{evidence_1}\"\n")
+
+    # Step 1: Get the 'base_score' from the AI Thinker
+    analysis_result_1 = ai_thinker.analyze_control_evidence(
+        evidence=evidence_1,
+        control_id=control_id_1
+    )
+    base_score_1 = analysis_result_1.get('base_score', 0)
+
+    print("--- AI Analysis Result (The 'Thinker') ---")
+    pprint(analysis_result_1)
     
-    # Example input data for AC-1 (Access Control Policy)
-    example_inputs = {
-        'documentation': {
-            'has_policies': True,
-            'policy_details': {
-                'completeness': 0.8,
-                'accuracy': 0.9,
-                'currency': 0.7
-            },
-            'has_procedures': True,
-            'procedure_details': {
-                'completeness': 0.7,
-                'accuracy': 0.8,
-                'currency': 0.6
-            },
-            'has_guidelines': True,
-            'guideline_details': {
-                'completeness': 0.6,
-                'accuracy': 0.7,
-                'currency': 0.8
-            }
-        },
-        'implementation': {
-            'technical': {
-                'effectiveness': 0.75,
-                'validation': True,
-                'testing': True
-            },
-            'administrative': {
-                'effectiveness': 0.8,
-                'validation': True,
-                'testing': True
-            },
-            'physical': {
-                'effectiveness': 0.7,
-                'validation': True,
-                'testing': False
-            },
-            'documented_processes': 0.8,
-            'regular_testing': 0.7,
-            'continuous_monitoring': 0.6,
-            'improvement_process': 0.7,
-            'automation_level': 0.5
-        },
-        'risk_assessment': {
-            'threat_level': 0.3,
-            'vulnerability_score': 0.2,
-            'impact_rating': 0.4,
-            'last_assessment': '2023-11-23',
-            'assessor': 'Security Team'
-        },
-        'automation': {
-            'monitoring_automation': 0.6,
-            'response_automation': 0.5,
-            'reporting_automation': 0.7,
-            'update_automation': 0.4,
-            'validation_automation': 0.5
-        },
-        'monitoring': {
-            'monitoring_coverage': 0.7,
-            'alerting_effectiveness': 0.6,
-            'response_time_score': 0.8
-        },
-        'incidents': {
-            'incidents': [
-                {
-                    'date': '2023-10-15',
-                    'severity': 'low',
-                    'description': 'Failed login attempts'
-                },
-                {
-                    'date': '2023-09-20',
-                    'severity': 'medium',
-                    'description': 'Unauthorized access attempt'
-                }
-            ]
-        },
-        'updates': {
-            'update_frequency': 0.8,
-            'update_coverage': 0.7,
-            'update_validation': 0.6
-        }
-    }
+    # Step 2: Calculate the 'final_score' using the Score Calculator
+    final_score_1 = score_calculator.calculate_control_score(base_score_1, enhancement_level_1)
     
-    # Collect and structure evidence
-    evidence = collector.collect_control_evidence('AC-1', example_inputs)
+    print("\n--- Final Score Calculation (The 'Calculator') ---")
+    print(f"Base Score from AI: {base_score_1}")
+    print(f"Enhancement Level: '{enhancement_level_1}' (Multiplier: {score_calculator.enhancement_multipliers[enhancement_level_1]})")
+    print(f"==> Final Calculated Score: {final_score_1:.2f}\n")
+    print("--------------------------------------------\n")
+
+
+    # --- Test Case 2: A "good" piece of evidence for control IA-2 ---
+    control_id_2 = "IA-2"
+    evidence_2 = "Attached is the configuration for our service mesh, which shows that all agent-to-agent communication is authenticated using mTLS with X.509 certificates. The certificate authority is configured to use the CRYSTALS-Dilithium signature scheme."
+    enhancement_level_2 = "significant" # A different sample enhancement level
+
+    print(f"--- Running Full Test for Control: {control_id_2} ---")
+    print(f"Analyzing Evidence: \"{evidence_2}\"\n")
     
-    # Analyze evidence using AI
-    analysis_results = analyzer.analyze_control_evidence(evidence)
+    # Step 1: Get the 'base_score' from the AI Thinker
+    analysis_result_2 = ai_thinker.analyze_control_evidence(
+        evidence=evidence_2,
+        control_id=control_id_2
+    )
+    base_score_2 = analysis_result_2.get('base_score', 0)
+
+    print("--- AI Analysis Result (The 'Thinker') ---")
+    pprint(analysis_result_2)
     
-    # Print results
-    print("\n=== AuditPilot AI Compliance Assessment Results ===\n")
-    print(f"Control: AC-1 (Access Control Policy)")
-    print(f"Compliance Score: {analysis_results['compliance_score']:.2f}%")
-    print(f"Confidence Score: {analysis_results['confidence_score']:.2f}%")
-    
-    print("\nKey Findings:")
-    for finding in analysis_results['analysis']['key_findings']:
-        print(f"- {finding}")
-    
-    print("\nRisk Factors:")
-    for risk in analysis_results['risk_factors']:
-        print(f"- {risk['factor']} (Severity: {risk['severity']})")
-        print(f"  Description: {risk['description']}")
-    
-    print("\nImprovement Recommendations:")
-    for improvement in analysis_results['improvement_areas']:
-        print(f"\n{improvement['area']} (Priority: {improvement['priority']}):")
-        for suggestion in improvement['suggestions']:
-            print(f"- {suggestion}")
+    # Step 2: Calculate the 'final_score' using the Score Calculator
+    final_score_2 = score_calculator.calculate_control_score(base_score_2, enhancement_level_2)
+
+    print("\n--- Final Score Calculation (The 'Calculator') ---")
+    print(f"Base Score from AI: {base_score_2}")
+    print(f"Enhancement Level: '{enhancement_level_2}' (Multiplier: {score_calculator.enhancement_multipliers[enhancement_level_2]})")
+    print(f"==> Final Calculated Score: {final_score_2:.2f}\n")
+    print("--------------------------------------------\n")
+
 
 if __name__ == '__main__':
-    run_example_assessment() 
+    run_example_assessment()
